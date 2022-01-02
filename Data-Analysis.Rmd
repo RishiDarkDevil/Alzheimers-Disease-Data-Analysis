@@ -40,6 +40,23 @@ In this Data Analysis Project, I am going to work with **Alzheimer's Disease(AD)
 
 Let's take a look at the Data
 
-```{r}
-kable(head(data), caption)
+```{r view_data, warning=FALSE}
+kable(head(data), caption = "First few rows of AD Data") %>%
+  kable_styling(position = "center")
 ```
+
+- The Dataset contains `r nrow(data)` rows each representing one individual's measure of `r ncol(data)` parameters.
+- The Dataset is obtained from ADNI.
+- The Dataset consists of a Healthy Control Group and AD patients.
+The description of each column is given below:
+```{r}
+col.desc <- tibble(
+  "column names" = colnames(data),
+  "Description" = c("AD Diagnosis Result- 0: AD negative, 1: AD positive", "Age", "Gender", "Education Level", "Biomarker measure after administration of 18F-FDG", "Biomarker measure after administration of AV45", "Nomalized Hippocampus Volume", "APOE2 Gene- 0: Variant Absent, 1: Variant Present", "APOE4 Gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "Mental Medical Examination Score", "Neurobattery Score", "ID of Individual")
+)
+kable(col.desc, caption = "Column Description") %>%
+  kable_styling(position = "center")
+```
+
+So, this wraps up the Introduction and Overview of the data, we now understand what we have in the data. We now proceed to visually inspecting the data.
+
