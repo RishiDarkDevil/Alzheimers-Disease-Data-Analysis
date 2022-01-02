@@ -20,6 +20,7 @@ library(yardstick)
 library(jtools)
 library(knitr)
 library(kableExtra)
+library(viridis)
 options(dplyr.summarise.inform = FALSE)
 ```
 
@@ -59,4 +60,41 @@ kable(col.desc, caption = "Column Description") %>%
 ```
 
 So, this wraps up the Introduction and Overview of the data, we now understand what we have in the data. We now proceed to visually inspecting the data.
+
+# VISUAL OVERVIEW
+
+Here we will explore the data visually through plots, diagrams, etc. to understand what parameters affect the diagnosis status and to what degree. Our main focus will be to understand graphically or on an upper level **how well each parameter measures segregate between an AD patient and a healthy patient**.
+```{r cont_pred_boxplot_data_prep}
+conv.to.fac <- colnames(data)[c(1,3, 8:16, 19)]
+# Wrangle
+data1 <- data
+data1[conv.to.fac] <- lapply(data1[conv.to.fac], as.factor)
+
+data.long <- data1 %>%
+  select(-c(e2_1, e4_1, rs3818361, rs744373, rs11136000, rs610932, rs3851179, rs3764650, rs3865444, ID, PTGENDER, PTEDUCAT)) %>%
+  gather('AGE', 'FDG', 'AV45', 'HippoNV', 'MMSCORE', 'TOTAL13', key = "cont.preds", value = "values")
+
+```
+
+- From the boxplots given below we see that **AV45, FDG, HippoNV, MMSCORE, TOTAL13 visually appear quite significant in separating between the 2 classes i.e. Healthy Individuals(0) and AD Patients(1)**. This gives us an impression that these measures are important in detecting AD. We may expect these parameters to have greater impact in the Logistic Regression Model which we want to build. **AD patients are observed to have higher AV45 measure, lower FDG measure, lower Hippocampus Volume, lower Mental Examination Scores and higher TOTAL13 biomarker measure compared to Healthy Patients**. 
+```{r cont_preds_boxplot}
+data.long %>%
+  ggplot(aes(x= cont.preds, y = values, fill = DX_bl)) +
+  geom_boxplot(outlier.shape = NA)+
+  facet_wrap(~cont.preds, scales = "free") +
+  labs(
+    x = "Diagnosis Status",
+    y = "Values",
+    fill = "AD Status"
+  ) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), strip.background = element_blank()) +
+  theme(legend.position = "bottom") +
+  guides(
+    fill = guide_legend(
+      nrow = 1
+    )
+  ) + ggtitle("Continuous Parameter Measures")
+```
+
 
