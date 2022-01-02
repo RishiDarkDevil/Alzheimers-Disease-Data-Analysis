@@ -13,9 +13,9 @@ data <- read_csv("AD.csv")
 
 # Prepocessing
 conv.to.fac <- colnames(data)[c(1,3, 8:16, 19)]
-data <- data %>%
-  mutate(DX_bl = ifelse(DX_bl == 0, "No", "Yes"))
-data[conv.to.fac] <- lapply(data[conv.to.fac], as.factor)
+# data <- data %>%
+#   mutate(DX_bl = ifelse(DX_bl == 0, "No", "Yes"))
+# data[conv.to.fac] <- lapply(data[conv.to.fac], as.factor)
 
 data
 

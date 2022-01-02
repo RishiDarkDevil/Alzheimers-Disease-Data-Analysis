@@ -50,7 +50,7 @@ kable(head(data), caption = "First few rows of AD Data") %>%
 - The Dataset is obtained from ADNI.
 - The Dataset consists of a Healthy Control Group and AD patients.
 The description of each column is given below:
-```{r}
+```{r column_description}
 col.desc <- tibble(
   "column names" = colnames(data),
   "Description" = c("AD Diagnosis Result- 0: AD negative, 1: AD positive", "Age", "Gender", "Education Level", "Biomarker measure after administration of 18F-FDG", "Biomarker measure after administration of AV45", "Nomalized Hippocampus Volume", "APOE2 Gene- 0: Variant Absent, 1: Variant Present", "APOE4 Gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "specific gene- 0: Variant Absent, 1: Variant Present", "Mental Medical Examination Score", "Neurobattery Score", "ID of Individual")
@@ -77,13 +77,13 @@ data.long <- data1 %>%
 ```
 
 - From the boxplots given below we see that **AV45, FDG, HippoNV, MMSCORE, TOTAL13 visually appear quite significant in separating between the 2 classes i.e. Healthy Individuals(0) and AD Patients(1)**. This gives us an impression that these measures are important in detecting AD. We may expect these parameters to have greater impact in the Logistic Regression Model which we want to build. **AD patients are observed to have higher AV45 measure, lower FDG measure, lower Hippocampus Volume, lower Mental Examination Scores and higher TOTAL13 biomarker measure compared to Healthy Patients**. 
-```{r cont_preds_boxplot}
+```{r cont_preds_boxplot, fig.asp=1, fig.width=12}
 data.long %>%
   ggplot(aes(x= cont.preds, y = values, fill = DX_bl)) +
   geom_boxplot(outlier.shape = NA)+
   facet_wrap(~cont.preds, scales = "free") +
   labs(
-    x = "Diagnosis Status",
+    x = "AD Diagnosis Status",
     y = "Values",
     fill = "AD Status"
   ) +
@@ -97,4 +97,36 @@ data.long %>%
   ) + ggtitle("Continuous Parameter Measures")
 ```
 
+- Now, taking a look at the gene indicators for each individual, we observe that **all the genes are present in lesser proportion of AD patients compared to healthy individuals, except e4_1 gene. There is a significant difference in the proportion of rs11136000 gene**.
+```{r gene_count, fig.asp=1, fig.width=12}
+gene_count <- data %>%
+  gather(e2_1, e4_1, rs3818361, rs744373, rs11136000, rs610932, rs3851179, rs3764650, rs3865444, key = 'gene', value = 'indicator') %>%
+  select(DX_bl, gene, indicator)  %>%
+  group_by(DX_bl, gene) %>%
+  tally(indicator == 1)
+
+gene_count %>%
+    mutate(DX_bl = as.factor(DX_bl), n = n/nrow(data)) %>%
+    ggplot(aes(gene, n)) +
+    geom_bar(aes(fill = DX_bl), position = "dodge", stat = "identity") +
+    labs(
+        x = "AD Diagnosis Status",
+        y = "Presence Prop(gene = 1)",
+        fill = "AD Status"
+    ) +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5), panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), strip.background = element_blank()) +
+    theme(legend.position = "bottom") +
+    guides(
+        fill = guide_legend(
+            nrow = 1
+        )
+    ) + ggtitle("Gene Presence Count")
+``` 
+
+- Now, we must also look into the interaction between the continuous columns to be sure that there is no multicollinearity problems in our Model which we will be fitting. And **we see there is not much correlation between the variables, so no multicollinearity issues and some factors like FDG, HippoNV, AV45, MMSCORE, TOTAL13 as we saw above show more or less clear distinction between the 2 class: AD Positive and AD Negative individuals**.
+```{r cont_var_pairplot, fig.asp=1, fig.width=12}
+data %>%
+  ggpairs(columns = c("AGE", "FDG", "AV45", "HippoNV", "MMSCORE", "TOTAL13"), aes(color = as.factor(DX_bl)), progress = FALSE)
+```
 
