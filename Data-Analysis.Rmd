@@ -144,7 +144,7 @@ Here what we are trying to explain using all the other parameter levels is wheth
 logit.AD.full <- glm(DX_bl~.-ID, data = data, family = "binomial")
 summ(logit.AD.full)
 ```
-- We fit a **smaller model using only the significant variables and choose a smaller model, given below. This is because, it will reduce variance in predictions and will be far more easier to interpret**.(Model selection is done by "both" selection, we could have done it by "forward" or "backward" selection also).**Our suspect of FDG, HippoNV, MMSCORE, TOTAL13 to play important role in distinguishing AD and non-AD patients seems correct**.
+- We fit a **smaller model using only the significant variables and choose a smaller model, given below. This is because, it will reduce variance in predictions and will be far more easier to interpret**.(Model selection is done by "both" selection, we could have done it by "forward" or "backward" selection also).**Our suspect of FDG, HippoNV, MMSCORE, TOTAL13 to play important role in distinguishing AD and non-AD patients seems correct**. **Increase in FDG measure, HippoNV, MMSCORE individually keeping all other parameters fixed decreases the probability of a person to have AD**.
 ```{r fit_model_reduced, warning=FALSE}
 logit.AD.sig <- step(logit.AD.full, direction = "both", trace = 0)
 summ(logit.AD.sig)
@@ -152,7 +152,7 @@ summ(logit.AD.sig)
 - Comparing the 2 models above by **anova table LRT test we see no significant difference between the 2 models(p-value = 0.8569). That's why we opt to choose the reduced model**.
 ```{r anova_mods}
 anova.mods <- anova(logit.AD.full, logit.AD.sig, test = "LRT")
-summary(anova.mods)
+anova.mods
 ```
 - We present the 2 fitted models below visually to see the coefficient estimates and which variables are included and which are not in the reduced model. It is quite important that **we reduced the model complexity greatly by removing 10 variables which didn't have any substantial role in explaining the AD Status**.
 ```{r plot_models, fig.asp=1, fig.width=12, warning=FALSE}
@@ -183,5 +183,67 @@ mods.tab <- ggtexttable(mod.tables, theme = ttheme("mOrangeWhite"), rows= NULL) 
 # Visualizing Models
 ggarrange(mods, mods.tab, ncol = 2, widths = c(7,3))
 ```
-- We Now look at how our models perform and how well it fits the data.
+- We Now look at how our models perform and how well it fits the data. We first show below what values of probability is predicted by our Logistic Regression Model for each individual given the parameters for that individual. Seeing the violin plot we see **our model works as expected and is able to distinguish between the 2 classes and faces little confusion as it confidently outputs near 0 and near 1 values most of the times**. We see the **reduced model and full model predicts similar probabilities**. **Presence of rs3818361, rs11136000 reduces the probability of a person to have AD, whereas presence of rs610932 gene increases the probability of a person to have AD** 
+```{r distinguish_violin, fig.asp=1, fig.width=12}
+predict.data <- data %>%
+  add_predictions(logit.AD.full, var = "full.mod.pred") %>%
+  add_predictions(logit.AD.sig, var = "sig.mod.pred")
 
+predict.data <- predict.data %>%
+  mutate(full.mod.probs = exp(full.mod.pred)/(1+exp(full.mod.pred)), sig.mod.probs = exp(sig.mod.pred)/(1+exp(sig.mod.pred)),
+         full.mod.class = as.numeric(full.mod.probs>0.5), sig.mod.class = as.numeric(sig.mod.probs>0.5))
+
+predict.data.long <- predict.data %>%
+  gather(full.mod.probs, sig.mod.probs, key = "model", value = "probs")
+
+# See Class Separation given by Models
+predict.data.long %>%
+  mutate(DX_bl = as.factor(DX_bl)) %>%
+  ggplot(aes(DX_bl, probs, fill = model)) +
+  geom_violin() +
+  labs(
+    x = "AD Diagnosis Status(Actual)",
+    y = "AD Positive Probability(Predicted)",
+    fill = "Models"
+  ) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), panel.border = element_blank(), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), strip.background = element_blank()) +
+  ggtitle("Model Predicted Probabilities for AD positive status")
+```
+- Below we see take a look at the performance of the model by seeing it's accuracy on the data and since it is a medical dataset specificity and sensitivity are also quite important. We see how **the reduced model performs slightly better than the full model**. We also see the logistic regression performs quite impressively to make predictions regarding a person having AD or not. The **Accuracy, Sensitivity and Specificity all are above 90%**.
+```{r confusion_matrices, fig.asp=1, fig.width=12}
+conf.mat.full <- confusionMatrix(table(predict.data$full.mod.class, predict.data$DX_bl))  
+conf.mat.sig <- confusionMatrix(table(predict.data$sig.mod.class, predict.data$DX_bl))  
+
+mod.full.perf <- ggtexttable(tibble(Criteria= c("Accuracy", "Sensitivity", "Specificity"), Values=c(conf.mat.full$overall[1], conf.mat.full$byClass[1:2])), theme = ttheme("mBlueWhite")) %>%
+  tab_add_title("Full Model", face = "bold")
+mod.sig.perf <- ggtexttable(tibble(Criteria= c("Accuracy", "Sensitivity", "Specificity"), Values=c(conf.mat.sig$overall[1], conf.mat.sig$byClass[1:2])), theme = ttheme("mVioletWhite")) %>%
+  tab_add_title("Reduced Model", face = "bold")
+
+
+predict.data <- predict.data %>%
+  mutate(DX_bl=as.factor(DX_bl), full.mod.class=as.factor(full.mod.class), sig.mod.class=as.factor(sig.mod.class))
+
+cm <- conf_mat(predict.data, DX_bl, full.mod.class)
+cm.full <- autoplot(cm, type = "heatmap") + 
+  scale_fill_gradient(low = "#D6EAF8", high = "#2E86C1")
+cm.full <- annotate_figure(cm.full, top = text_grob("Confusion Matrix for Full Model", face = "bold", size = 16))
+
+cm <- conf_mat(predict.data, DX_bl, sig.mod.class)
+cm.sig <- autoplot(cm, type = "heatmap") + 
+  scale_fill_gradient(low = "#D6EAF8", high = "#2E86C1")
+cm.sig <- annotate_figure(cm.sig, top = text_grob("Confusion Matrix for Reduced Model", face = "bold", size = 16))
+
+# Confusion Matrix Plot
+ggarrange(cm.full, mod.full.perf, cm.sig, mod.sig.perf, widths = c(6,4))
+```
+
+# CONCLUSION
+
+The above modelling gives us the following conclusion:
+- **FDG Biomarker measure, Hippocampus Volume, Mental Examination Score, TOTAL13, genes: rs3818361, rs11136000, rs610932 play an important role in predicting and explaining a person's AD Status**.
+- Medications improving body's condition to increase the above parameter values can greatly impact in reducing AD condition.
+
+# BIBLIOGRAPHY
+
+The data used for this Analysis is obtained from ADNI.
