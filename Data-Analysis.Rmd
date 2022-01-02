@@ -1,0 +1,45 @@
+---
+title: "Alzheimer's Disease - Data Analysis"
+author: "Rishi Dey Chowdhury"
+date: "1/2/2022"
+output: 
+  html_document:
+    keep_md: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+library(ggplot2)
+library(ggpubr)
+library(GGally)
+library(e1071)
+library(caret)
+library(modelr)
+library(yardstick)
+library(jtools)
+library(knitr)
+library(kableExtra)
+options(dplyr.summarise.inform = FALSE)
+```
+
+```{r raw_data, cache=TRUE, include=FALSE}
+# Importing my data sets
+data <- read_csv("AD.csv")
+```
+
+# INTRODCTION
+
+In this Data Analysis Project, I am going to work with **Alzheimer's Disease(AD) and Factors affecting it**. The Project will mainly be focused around building a **Logistic Regression Model** to fit to the data.
+
+## MOTIVE
+
+-   To understand how the parameter levels, scores and factors affect a person, in terms of them having AD or not.
+
+## DATA OVERVIEW
+
+Let's take a look at the Data
+
+```{r}
+kable(head(data), caption)
+```
