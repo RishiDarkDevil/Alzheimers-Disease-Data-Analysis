@@ -127,6 +127,26 @@ gene_count %>%
 - Now, we must also look into the interaction between the continuous columns to be sure that there is no multicollinearity problems in our Model which we will be fitting. And **we see there is not much correlation between the variables, so no multicollinearity issues and some factors like FDG, HippoNV, AV45, MMSCORE, TOTAL13 as we saw above show more or less clear distinction between the 2 class: AD Positive and AD Negative individuals**.
 ```{r cont_var_pairplot, fig.asp=1, fig.width=12}
 data %>%
-  ggpairs(columns = c("AGE", "FDG", "AV45", "HippoNV", "MMSCORE", "TOTAL13"), aes(color = as.factor(DX_bl)), progress = FALSE)
+  ggpairs(columns = c("AGE", "FDG", "AV45", "HippoNV", "MMSCORE", "TOTAL13"), aes(color = as.factor(DX_bl)), progress = FALSE) +
+  theme_bw() +
+  theme(plot.title = element_text(hjust = 0.5), panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"), strip.background = element_blank()) +
+    theme(legend.position = "bottom") + ggtitle("Pairplot between All Continuous Parameter Measures")
+```
+
+This wraps up the visual overview of our data and we here found some of the parameters which are quite important in segregating between the 2 classes we are aiming to fit a model to explain. In the next section we will actually build the model.
+
+# DATA MODELLING
+
+Here what we are trying to explain using all the other parameter levels is whether a person has AD or not. So, it is quite rational to fit a Logistic Regression Model, which has a linear decision boundary cause we see there doesn't exist too much non-linearity in the data. So, below we will go through the fitting and choosing of the Model.
+
+- We fit a Logistic Regression Model by IRLS Method of DX_bl(AD Status) on all the other variables, except ID. Below we represent the fitted model. We see **many parameters are not significant**.
+```{r fit_model_full}
+logit.AD.full <- glm(DX_bl~.-ID, data = data, family = "binomial")
+summ(logit.AD.full)
+```
+- We fit a **smaller model using only the significant variables and choose a smaller model, given below. This is because, it will reduce variance in predictions and will be far more easier to interpret**.(Model selection is done by "both" selection, we could have done it by "forward" or "backward" selection also).
+```{r fit_model_reduced}
+logit.AD.sig <- step(logit.AD.full, direction = "both", trace = 0)
+summ(logit.AD.sig)
 ```
 
