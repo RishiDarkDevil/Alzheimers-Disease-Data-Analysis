@@ -21,6 +21,8 @@ library(jtools)
 library(knitr)
 library(kableExtra)
 library(viridis)
+library(broom)
+library(broom.mixed)
 options(dplyr.summarise.inform = FALSE)
 ```
 
@@ -144,7 +146,7 @@ Here what we are trying to explain using all the other parameter levels is wheth
 logit.AD.full <- glm(DX_bl~.-ID, data = data, family = "binomial")
 summ(logit.AD.full)
 ```
-- We fit a **smaller model using only the significant variables and choose a smaller model, given below. This is because, it will reduce variance in predictions and will be far more easier to interpret**.(Model selection is done by "both" selection, we could have done it by "forward" or "backward" selection also).**Our suspect of FDG, HippoNV, MMSCORE, TOTAL13 to play important role in distinguishing AD and non-AD patients seems correct**. **Increase in FDG measure, HippoNV, MMSCORE individually keeping all other parameters fixed decreases the probability of a person to have AD**.
+- We fit a **smaller model using only the significant variables and choose a smaller model, given below. This is because, it will reduce variance in predictions and will be far more easier to interpret**.(Model selection is done by "both" selection, we could have done it by "forward" or "backward" selection also).**Our suspect of FDG, HippoNV, MMSCORE, TOTAL13 to play important role in distinguishing AD and non-AD patients seems correct**. **Increase in FDG measure, HippoNV, MMSCORE individually keeping all other parameters fixed decreases the probability of a person to have AD and increase in TOTAL13 score keeping other parameters fixed increase this probability**.
 ```{r fit_model_reduced, warning=FALSE}
 logit.AD.sig <- step(logit.AD.full, direction = "both", trace = 0)
 summ(logit.AD.sig)
@@ -211,7 +213,7 @@ predict.data.long %>%
   ggtitle("Model Predicted Probabilities for AD positive status")
 ```
 - Below we see take a look at the performance of the model by seeing it's accuracy on the data and since it is a medical dataset specificity and sensitivity are also quite important. We see how **the reduced model performs slightly better than the full model**. We also see the logistic regression performs quite impressively to make predictions regarding a person having AD or not. The **Accuracy, Sensitivity and Specificity all are above 90%**.
-```{r confusion_matrices, fig.asp=1, fig.width=12}
+```{r confusion_matrices, fig.asp=1, fig.width=12, message=FALSE}
 conf.mat.full <- confusionMatrix(table(predict.data$full.mod.class, predict.data$DX_bl))  
 conf.mat.sig <- confusionMatrix(table(predict.data$sig.mod.class, predict.data$DX_bl))  
 
@@ -225,13 +227,13 @@ predict.data <- predict.data %>%
   mutate(DX_bl=as.factor(DX_bl), full.mod.class=as.factor(full.mod.class), sig.mod.class=as.factor(sig.mod.class))
 
 cm <- conf_mat(predict.data, DX_bl, full.mod.class)
-cm.full <- autoplot(cm, type = "heatmap") + 
-  scale_fill_gradient(low = "#D6EAF8", high = "#2E86C1")
+suppressMessages(cm.full <- autoplot(cm, type = "heatmap") + 
+  scale_fill_gradient(low = "#D6EAF8", high = "#2E86C1"))
 cm.full <- annotate_figure(cm.full, top = text_grob("Confusion Matrix for Full Model", face = "bold", size = 16))
 
 cm <- conf_mat(predict.data, DX_bl, sig.mod.class)
-cm.sig <- autoplot(cm, type = "heatmap") + 
-  scale_fill_gradient(low = "#D6EAF8", high = "#2E86C1")
+suppressMessages(cm.sig <- autoplot(cm, type = "heatmap") + 
+  scale_fill_gradient(low = "#D6EAF8", high = "#2E86C1"))
 cm.sig <- annotate_figure(cm.sig, top = text_grob("Confusion Matrix for Reduced Model", face = "bold", size = 16))
 
 # Confusion Matrix Plot
@@ -242,7 +244,7 @@ ggarrange(cm.full, mod.full.perf, cm.sig, mod.sig.perf, widths = c(6,4))
 
 The above modelling gives us the following conclusion:
 - **FDG Biomarker measure, Hippocampus Volume, Mental Examination Score, TOTAL13, genes: rs3818361, rs11136000, rs610932 play an important role in predicting and explaining a person's AD Status**.
-- Medications improving body's condition to increase the above parameter values can greatly impact in reducing AD condition.
+- Medications improving body's condition to increase the above parameter(except TOTAL13) values can greatly impact in reducing AD condition.
 
 # BIBLIOGRAPHY
 
