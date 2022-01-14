@@ -480,6 +480,7 @@ Here what we are trying to explain using all the other parameter levels is wheth
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
 - We fit a **smaller model using only the significant variables and choose a smaller model, given below. This is because, it will reduce variance in predictions and will be far more easier to interpret**.(Model selection is done by "both" selection, we could have done it by "forward" or "backward" selection also).**Our suspect of FDG, HippoNV, MMSCORE, TOTAL13 to play important role in distinguishing AD and non-AD patients seems correct**. **Increase in FDG measure, HippoNV, MMSCORE individually keeping all other parameters fixed decreases the probability of a person to have AD and increase in TOTAL13 score keeping other parameters fixed increase this probability**.
 <table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <tbody>
@@ -598,6 +599,7 @@ Here what we are trying to explain using all the other parameter levels is wheth
 <tfoot><tr><td style="padding: 0; " colspan="100%">
 <sup></sup> Standard errors: MLE</td></tr></tfoot>
 </table>
+
 - Comparing the 2 models above by **anova table LRT test we see no significant difference between the 2 models(p-value = 0.8569). That's why we opt to choose the reduced model**.
 
 ```
