@@ -1,4 +1,5 @@
 # Alzheimers Disease - Data Analysis
+![](Data-Analysis_files/figure-html/cont_var_pairplot-1.png)
 Here I have explored, analysed and fit an interpretable prediction Logistic Regression Model to explain the factors that contribute the most to Alzheimer's Disease. 
 
 I have mainly focused on building the Logistic Regression Model, and have done the EDA mostly to see how the other factors measured for each individual interprets to a person having AD or not.
